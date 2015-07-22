@@ -1,0 +1,48 @@
+extends layout
+
+block content
+
+	link(rel="stylesheet",type="text/css",href="/stylesheets/style.css")
+
+	main.page-upload
+
+		h1 Dorian
+
+		.form-group
+
+			form#upload-form.upload-form(action="/services/govuk-verify/register/images", method="post", enctype="multipart/form-data")
+
+				label.file-label
+					span Choose an image
+					input.file(type="file", name="file-image", id="file-image")
+				input.submit(type="submit", value="Upload")
+
+		.form-group
+
+			form#upload-form.upload-form(action="/services/govuk-verify/register/data", method="post", enctype="multipart/form-data")
+
+				label.file-label
+					span Choose a data file
+					input.file(type="file", name="file-data", id="file-data")
+				input.submit(type="submit", value="Upload")
+
+		p#processing.processing Processing - might take up to a minute ...
+
+		script.
+
+			$(function(){
+
+				$('#file-image').on('change', function(){
+
+					$(this).closest('form').submit();
+
+				});
+
+				$('#file-data').on('change', function(){
+
+					$(this).closest('form').submit();
+
+				});
+
+			});
+

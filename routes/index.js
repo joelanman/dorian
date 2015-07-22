@@ -1,5 +1,6 @@
-var express = require('express');
-var router = express.Router();
+var express   = require('express');
+var router 	  = express.Router();
+var skipperS3 = require('skipper-s3');
 
 var aws = require('aws-sdk');
 
@@ -32,9 +33,6 @@ router.get('/sign_s3', function(req, res){
         ACL: 'public-read'
     };
 
-    console.log("s3_params");
-    console.dir(s3_params);
-
     s3.getSignedUrl('putObject', s3_params, function(err, data){
         if (err){
             console.log(err);
@@ -50,83 +48,28 @@ router.get('/sign_s3', function(req, res){
 
 });
 
-router.get('/report/:presentationName', function (req, res){
+router.post('/services/:service/:journey/images', function(req,res){
 
-	var timings = [];
+	var service = req.params.service;
+	var journey  = req.params.journey;
 
-	timings.push({"init": now()});
+	req.file('file-image').upload({
+		adapter: skipperS3,
+		saveAs:  function(file,cb){
+			cb(null, file.filename);
+		},
+		key:     AWS_ACCESS_KEY,
+		secret:  AWS_SECRET_KEY,
+		bucket:  S3_BUCKET
+	}, function(err, file){
 
-	var presentationName = req.params.presentationName;
-
-	if (!presentationName){
-	    res.status(404).send("no presentation selected");
-	}
-
-	var uploads = 0;
-
-	var slideRegex = /^ppt\/slides\/[^\/]*\.xml$/;
-	var relsRegex  = /^ppt\/slides\/_rels\/[^\/]*\.rels$/;
-	var mediaRegex = /^ppt\/media\/[^\/]*$/;
-
-	var slideNames = [];
-
-	// read pptx and unzip to s3
-
-	var params = {Bucket: S3_BUCKET, Key: presentationName + ".pptx"};
-
-	var readStream = s3.getObject(params).createReadStream().on("error", function(error){
-
-		console.error("createReadStream.error");
-		console.error(error);
-		res.status(error.statusCode).send(error);
+		console.log("done");
 
 	});
 
-	function uploadFile (file) {
-
-        var keep = false;
-
-        if (slideRegex.test(file.path)){
-
-            var slideName = file.path.replace("ppt/slides/","");
-
-            slideNames.push(slideName);
-            keep = true;
-
-        } else if (relsRegex.test(file.path) || mediaRegex.test(file.path)){
-
-            keep = true;
-
-        }
-
-        if (keep){
-
-            uploads++;
-
-            file.pipe(s3Stream.upload({
-                "Bucket": S3_BUCKET,
-                "Key": presentationName.replace(".pptx","") + '/' + file.path,
-                "ContentType": "text/plain; charset=UTF-8"
-            }).on('uploaded', function (details) {
-
-                uploads--;
-            
-                if (uploads == 0){
-                    console.log("all uploaded");
-					timings.push({"uploaded": now()});
-                    processUnzipped();
-                }
-
-            }));
-
-        } else {
-
-            file.autodrain();
-
-        }
-
-    }
+	res.send("uploaded");
 
 });
+
 
 module.exports = router;
