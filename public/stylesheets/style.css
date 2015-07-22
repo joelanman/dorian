@@ -1,8 +1,33 @@
-body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+main{
+	max-width: 800px;
+	margin: auto;
+	font-family: Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: #00B7FF;
+.form-group{
+	margin: 2em 0;
+}
+
+.page-upload .submit{
+	display: none;
+}
+
+.page-upload .file{
+	display: none;
+}
+
+.page-upload .file-label{
+	font-size: 19px;
+	cursor: pointer;
+	display: inline-block;
+	padding: 0.75em 1.1em;
+	background: blue;
+	color: white;
+	font-weight: bold;
+	box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+	border-radius: 4px;
+}
+
+.page-upload .processing{
+	display: none;
 }
