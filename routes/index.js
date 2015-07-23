@@ -84,7 +84,7 @@ router.post('/services/:service/:journey/images', function(req,res){
 		saveAs:  function(file, callback){
 			console.log('saveAs');
 			console.log(service +"/" + journey + "/images/" + file.filename);
-			callback(null, service +"/" + journey + "/images/" + file.filename);
+			//callback(null, service +"/" + journey + "/images/" + file.filename);
 		},
 		key:     AWS_ACCESS_KEY,
 		secret:  AWS_SECRET_KEY,
