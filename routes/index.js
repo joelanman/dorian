@@ -16,9 +16,13 @@ aws.config.update({
 	secretAccessKey: AWS_SECRET_KEY
 });
 
+var s3 = new aws.S3();
+
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
+
+// sign an s3 request, for uploading directly from the client
 
 router.get('/sign_s3', function(req, res){
 
