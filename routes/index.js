@@ -10,7 +10,8 @@ var S3_BUCKET = "joelanman-dorian";
 
 aws.config.update({
 	accessKeyId: AWS_ACCESS_KEY,
-	secretAccessKey: AWS_SECRET_KEY
+	secretAccessKey: AWS_SECRET_KEY,
+	region: "eu-west-1"
 });
 
 var s3 = new aws.S3();
