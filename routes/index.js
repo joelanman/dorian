@@ -7,11 +7,12 @@ var aws = require('aws-sdk');
 var AWS_ACCESS_KEY = process.env.AWS_DORIAN_ACCESS_KEY;
 var AWS_SECRET_KEY = process.env.AWS_DORIAN_SECRET_KEY;
 var S3_BUCKET = "joelanman-dorian";
+var S3_REGION = "eu-west-1";
 
 aws.config.update({
 	accessKeyId: AWS_ACCESS_KEY,
 	secretAccessKey: AWS_SECRET_KEY,
-	region: "eu-west-1"
+	region: S3_REGION
 });
 
 var s3 = new aws.S3();
@@ -112,7 +113,8 @@ router.post('/services/:service/:journey/data', function(req,res){
 		},
 		key:     AWS_ACCESS_KEY,
 		secret:  AWS_SECRET_KEY,
-		bucket:  S3_BUCKET
+		bucket:  S3_BUCKET,
+		region:	 S3_REGION
 	}, function(err, file){
 
 		console.log("done");
