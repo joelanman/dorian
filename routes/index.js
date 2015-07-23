@@ -16,9 +16,6 @@ aws.config.update({
 	secretAccessKey: AWS_SECRET_KEY
 });
 
-var s3Stream = require('s3-upload-stream')(new aws.S3());
-var s3 = new aws.S3();
-
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
@@ -46,6 +43,20 @@ router.get('/sign_s3', function(req, res){
         }
     });
 
+});
+
+router.get('/services/:service/:journey', function(req,res){
+
+	var service = req.params.service;
+	var journey  = req.params.journey;
+
+	var viewdata = {};
+
+	// get data
+
+	// get images
+
+	res.render("journey", viewdata);
 });
 
 router.post('/services/:service/:journey/images', function(req,res){
