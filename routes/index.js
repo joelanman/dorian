@@ -71,5 +71,28 @@ router.post('/services/:service/:journey/images', function(req,res){
 
 });
 
+router.post('/services/:service/:journey/data', function(req,res){
+
+	var service = req.params.service;
+	var journey  = req.params.journey;
+
+	req.file('file-data').upload({
+		adapter: skipperS3,
+		saveAs:  function(file, callback){
+			callback(null, service +"/" + journey + "/" + file.filename);
+		},
+		key:     AWS_ACCESS_KEY,
+		secret:  AWS_SECRET_KEY,
+		bucket:  S3_BUCKET
+	}, function(err, file){
+
+		console.log("done");
+
+	});
+
+	res.send("uploaded");
+
+});
+
 
 module.exports = router;
