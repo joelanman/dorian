@@ -83,6 +83,7 @@ router.post('/services/:service/:journey/images', function(req,res){
 		adapter: skipperS3,
 		saveAs:  function(file, callback){
 			console.log('saveAs');
+			console.log(service +"/" + journey + "/images/" + file.filename);
 			callback(null, service +"/" + journey + "/images/" + file.filename);
 		},
 		key:     AWS_ACCESS_KEY,
