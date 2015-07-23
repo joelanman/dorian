@@ -1,3 +1,5 @@
+var fs = require('fs');
+
 var express   = require('express');
 var router 	  = express.Router();
 
@@ -85,10 +87,13 @@ router.post('/services/:service/:journey/images', upload.single('file-image'), f
 
 	var key = service + "/" + journey + "/images/" + req.file.originalname;
 
+	var body = fs.readFileSync(req.file.path);
+	fs.unlink(req.file.path);
+
 	var params = {
 		Bucket: S3_BUCKET,
 		Key: key,
-		Body: req.file.buffer
+		Body: body
 	};
 
 	s3.putObject(params, function (err) {
@@ -108,11 +113,14 @@ router.post('/services/:service/:journey/data', upload.single('file-data'), func
 
 	var key = service + "/" + journey + "/data.json";
 
+	var body = fs.readFileSync(req.file.path);
+	fs.unlink(req.file.path);
+
 	var params = {
 		Bucket: S3_BUCKET,
 		Key: key,
-		Body: req.file.buffer
-	};
+		Body: body
+	};	
 
 	s3.putObject(params, function (err) {
 		if (err) {
@@ -123,7 +131,5 @@ router.post('/services/:service/:journey/data', upload.single('file-data'), func
 	});
 
 });
-
-
 
 module.exports = router;
