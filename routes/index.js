@@ -1,6 +1,8 @@
 var express   = require('express');
 var router 	  = express.Router();
-var skipperS3 = require('skipper-s3');
+
+var multer  = require('multer')
+var upload = multer({ dest: 'uploads/' })
 
 var aws = require('aws-sdk');
 
@@ -76,54 +78,52 @@ router.get('/services/:service/:journey', function(req,res){
 
 });
 
-router.post('/services/:service/:journey/images', function(req,res){
+router.post('/services/:service/:journey/images', upload.single('file-image'), function(req,res){
 
 	var service = req.params.service;
 	var journey  = req.params.journey;
 
-	req.file('file-image').upload({
-		adapter: skipperS3,
-		saveAs:  function(file, callback){
-			console.log('saveAs');
-			console.log(service +"/" + journey + "/images/" + file.filename);
-			//callback(null, service +"/" + journey + "/images/" + file.filename);
-		},
-		key:     AWS_ACCESS_KEY,
-		secret:  AWS_SECRET_KEY,
-		bucket:  S3_BUCKET,
-		region:	 S3_REGION
-	}, function(err, file){
+	var key = service + "/" + journey + "/images/" + req.file.originalname;
 
-		console.log("done");
-		res.send("uploaded");
+	var params = {
+		Bucket: S3_BUCKET,
+		Key: key,
+		Body: req.file.buffer
+	};
 
+	s3.putObject(params, function (err) {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			res.send("uploaded");
+		}
 	});
 
 });
 
-router.post('/services/:service/:journey/data', function(req,res){
+router.post('/services/:service/:journey/data', upload.single('file-data'), function(req,res){
 
 	var service = req.params.service;
 	var journey  = req.params.journey;
 
-	req.file('file-data').upload({
-		adapter: skipperS3,
-		saveAs:  function(file, callback){
-			callback(null, service +"/" + journey + "/" + file.filename);
-		},
-		key:     AWS_ACCESS_KEY,
-		secret:  AWS_SECRET_KEY,
-		bucket:  S3_BUCKET,
-		region:	 S3_REGION
-	}, function(err, file){
+	var key = service + "/" + journey + "/data.json";
 
-		console.log("done");
-		res.send("uploaded");
+	var params = {
+		Bucket: S3_BUCKET,
+		Key: key,
+		Body: req.file.buffer
+	};
 
+	s3.putObject(params, function (err) {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			res.send("uploaded");
+		}
 	});
 
-
 });
+
 
 
 module.exports = router;
