@@ -90,14 +90,14 @@ router.post('/services/:service/:journey/images', function(req,res){
 		},
 		key:     AWS_ACCESS_KEY,
 		secret:  AWS_SECRET_KEY,
-		bucket:  S3_BUCKET
+		bucket:  S3_BUCKET,
+		region:	 S3_REGION
 	}, function(err, file){
 
 		console.log("done");
+		res.send("uploaded");
 
 	});
-
-	res.send("uploaded");
 
 });
 
@@ -118,10 +118,10 @@ router.post('/services/:service/:journey/data', function(req,res){
 	}, function(err, file){
 
 		console.log("done");
+		res.send("uploaded");
 
 	});
 
-	res.send("uploaded");
 
 });
 
