@@ -8,9 +8,6 @@ var AWS_ACCESS_KEY = process.env.AWS_DORIAN_ACCESS_KEY;
 var AWS_SECRET_KEY = process.env.AWS_DORIAN_SECRET_KEY;
 var S3_BUCKET = "joelanman-dorian";
 
-console.log(AWS_ACCESS_KEY);
-console.log(AWS_SECRET_KEY);
-
 aws.config.update({
 	accessKeyId: AWS_ACCESS_KEY,
 	secretAccessKey: AWS_SECRET_KEY
@@ -56,11 +53,25 @@ router.get('/services/:service/:journey', function(req,res){
 
 	var viewdata = {};
 
-	// get data
+	var params = {
+		Bucket: S3_BUCKET,
+		Key: service + '/' + journey + '/data.json'
+	};
 
-	// get images
+	s3.getObject(params, function(err, data) {
+		if (err){
+			console.log(err, err.stack);
+		} else {
 
-	res.render("journey", viewdata);
+			console.dir(data.Body.toString());
+
+			// TO DO get images
+
+			viewdata.data = data.Body.toString();
+			res.render("journey", viewdata);
+		}
+	});
+
 });
 
 router.post('/services/:service/:journey/images', function(req,res){
