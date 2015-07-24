@@ -6,4 +6,8 @@ block content
 
 		h1 Journey
 
-		pre= data
+		ol
+			each screen in journey.screens
+
+				li
+					a(href="#{screen.url}")= screen.name

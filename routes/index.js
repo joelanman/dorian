@@ -8,6 +8,8 @@ var upload = multer({ dest: 'uploads/' })
 
 var aws = require('aws-sdk');
 
+var OFFLINE = process.env.OFFLINE;
+
 var AWS_ACCESS_KEY = process.env.AWS_DORIAN_ACCESS_KEY;
 var AWS_SECRET_KEY = process.env.AWS_DORIAN_SECRET_KEY;
 var S3_BUCKET = "joelanman-dorian";
@@ -57,26 +59,46 @@ router.get('/services/:service/:journey', function(req,res){
 	var service = req.params.service;
 	var journey  = req.params.journey;
 
-	var viewdata = {};
+	var viewdata = {
+		"journey": {
+			"screens": []
+		}
+	};
 
 	var params = {
 		Bucket: S3_BUCKET,
 		Key: service + '/' + journey + '/data.json'
 	};
 
-	s3.getObject(params, function(err, data) {
-		if (err){
-			console.log(err, err.stack);
-		} else {
+	if (OFFLINE){
 
-			console.dir(data.Body.toString());
+		var journeyData = require('../resources/data.json');
 
-			// TO DO get images
+		journeyData.screens.forEach(function(screen){
+			viewdata.journey.screens.push({
+				"name": screen.name,
+				"url": "/services/"+service+"/"+journey+"/"+screen.name
+			})
+		});
 
-			viewdata.data = data.Body.toString();
-			res.render("journey", viewdata);
-		}
-	});
+		res.render("journey", viewdata);
+
+	} else {
+
+		s3.getObject(params, function(err, data) {
+			if (err){
+				console.log(err, err.stack);
+			} else {
+
+				console.dir(data.Body.toString());
+
+				// TO DO get images
+
+				viewdata.data = data.Body.toString();
+				res.render("journey", viewdata);
+			}
+		});
+	}
 
 });
 
@@ -129,6 +151,44 @@ router.post('/services/:service/:journey/data', upload.single('file-data'), func
 			res.send("uploaded");
 		}
 	});
+
+});
+
+router.get('/services/:service/:journey/:screen', function(req,res){
+
+	var service = req.params.service;
+	var journey = req.params.journey;
+	var screen  = req.params.screen;
+
+	var viewdata = {};
+
+	if (OFFLINE){
+
+		var journeyData = require('../resources/data.json');
+
+		var screenData = {};
+
+		for (var i = 0; i<journeyData.screens.length; i++){
+			console.dir(journeyData.screens[i]);
+			if (journeyData.screens[i].name == screen){
+				screenData = journeyData.screens[i];
+				break;
+			}
+		}
+
+		viewdata.screen = {
+			"name": screenData.name,
+			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + service + "/" + journey + "/images/" + screenData["image-filename"]
+		}
+
+		res.render('screen', viewdata);
+
+	} else {
+
+		// TO DO get journey from S3 (cache?)
+
+	}
+
 
 });
 

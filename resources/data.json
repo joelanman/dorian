@@ -1,5 +1,14 @@
 {
 	"service": "Verify",
 	"journey": "Register",
-	"images" : ["1.png","2.png"]
+	"screens" : [
+		{
+			"name": "01-start",
+			"image-filename": "01-start.png"
+		},
+		{
+			"name": "02-slide-1",
+			"image-filename": "2.png"
+		}
+	]
 }
