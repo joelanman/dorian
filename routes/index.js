@@ -128,7 +128,7 @@ router.post('/services/:service/:journey/images', upload.single('file-image'), f
 
 });
 
-router.post('/services/:service/:journey/data', upload.single('file-data'), function(req,res){
+router.post('/services/:service/:journey', upload.single('file-data'), function(req,res){
 
 	var service = req.params.service;
 	var journey  = req.params.journey;
@@ -153,6 +153,8 @@ router.post('/services/:service/:journey/data', upload.single('file-data'), func
 	});
 
 });
+
+// TO DO upload service data
 
 router.get('/services/:service/:journey/:screen', function(req,res){
 
