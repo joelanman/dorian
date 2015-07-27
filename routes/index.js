@@ -128,6 +128,31 @@ router.post('/services/:service/:journey/images', upload.single('file-image'), f
 
 });
 
+router.post('/services/:service', upload.single('file-data'), function(req,res){
+
+	var service = req.params.service;
+
+	var key = service + "/data.json";
+
+	var body = fs.readFileSync(req.file.path);
+	fs.unlink(req.file.path);
+
+	var params = {
+		Bucket: S3_BUCKET,
+		Key: key,
+		Body: body
+	};	
+
+	s3.putObject(params, function (err) {
+		if (err) {
+			res.status(500).send(err);
+		} else {
+			res.send("uploaded");
+		}
+	});
+
+});
+
 router.post('/services/:service/:journey', upload.single('file-data'), function(req,res){
 
 	var service = req.params.service;
