@@ -98,11 +98,6 @@ router.get('/services/:service/:journey', function(req,res){
 		}
 	};
 
-	var params = {
-		Bucket: S3_BUCKET,
-		Key: serviceSlug + '/data.json'
-	};
-
 	if (OFFLINE){
 
 		var journeyData = require('../resources/data.json');
@@ -117,6 +112,11 @@ router.get('/services/:service/:journey', function(req,res){
 		res.render("journey", viewdata);
 
 	} else {
+
+		var params = {
+			Bucket: S3_BUCKET,
+			Key: serviceSlug + '/data.json'
+		};
 
 		s3.getObject(params, function(err, data) {
 			if (err){
@@ -234,11 +234,11 @@ router.post('/services/:service/:journey', upload.single('file-data'), function(
 
 // TO DO upload service data
 
-router.get('/services/:service/:journey/:screen', function(req,res){
+router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 
-	var service = req.params.service;
-	var journey = req.params.journey;
-	var screen  = req.params.screen;
+	var serviceSlug = req.params.serviceSlug;
+	var journeySlug = req.params.journeySlug;
+	var screenSlug  = req.params.screenSlug;
 
 	var viewdata = {};
 
@@ -250,7 +250,7 @@ router.get('/services/:service/:journey/:screen', function(req,res){
 
 		for (var i = 0; i<journeyData.screens.length; i++){
 			console.dir(journeyData.screens[i]);
-			if (journeyData.screens[i].name == screen){
+			if (journeyData.screens[i].name == screenSlug){
 				screenData = journeyData.screens[i];
 				break;
 			}
@@ -258,16 +258,56 @@ router.get('/services/:service/:journey/:screen', function(req,res){
 
 		viewdata.screen = {
 			"name": screenData.name,
-			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + service + "/" + journey + "/images/" + screenData["image-filename"]
+			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + journeySlug + "/images/" + screenData["image-filename"]
 		}
 
 		res.render('screen', viewdata);
 
 	} else {
 
-		// TO DO get journey from S3 (cache?)
+		var params = {
+			Bucket: S3_BUCKET,
+			Key: serviceSlug + '/data.json'
+		};
 
-		res.status(404).send("not done yet");
+		s3.getObject(params, function(err, data) {
+			if (err){
+				console.log(err, err.stack);
+			} else {
+
+				var serviceData = JSON.parse(data.Body.toString());
+
+				console.log(JSON.stringify(serviceData, null, '  '));
+
+				var journeyData = {};
+
+				for (var i = 0; i<serviceData.journeys.length; i++){
+					console.dir(serviceData.journeys[i]);
+					if (serviceData.journeys[i].slug == journeySlug){
+						journeyData = serviceData.journeys[i];
+						break;
+					}
+				}
+
+				var screenData = {};
+
+				for (var i = 0; i<journeyData.screens.length; i++){
+					console.dir(journeyData.screens[i]);
+					if (journeyData.screens[i].name == screenSlug){
+						screenData = journeyData.screens[i];
+						break;
+					}
+				}
+
+				viewdata.screen = {
+					"name": screenData.name,
+					"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + journeySlug + "/images/" + screenData["image-filename"]
+				}
+
+				res.render('screen', viewdata);
+
+			}
+		});
 
 	}
 
