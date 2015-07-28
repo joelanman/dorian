@@ -1,0 +1,13 @@
+extends layout
+
+block content
+
+	main.page-upload
+
+		h1= service.service
+
+		ul
+			each journey in service.journeys
+
+				li
+					a(href="/services/#{service.slug}/#{journey.slug}")= journey.name

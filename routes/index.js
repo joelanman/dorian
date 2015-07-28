@@ -54,10 +54,43 @@ router.get('/sign_s3', function(req, res){
 
 });
 
-router.get('/services/:service/:journey', function(req,res){
+router.get('/services/:service', function(req,res){
 
 	var service = req.params.service;
-	var journey  = req.params.journey;
+
+	var viewdata = {
+		"service": {
+			"journeys": []
+		}
+	};
+
+	var params = {
+		Bucket: S3_BUCKET,
+		Key: service + '/data.json'
+	};
+
+	s3.getObject(params, function(err, data) {
+		if (err){
+			console.log(err, err.stack);
+		} else {
+
+			console.log("data: " + data.Body.toString());
+
+			// TO DO get images
+
+			viewdata.service = JSON.parse(data.Body.toString());
+
+			res.render("service", viewdata);
+		}
+	});
+
+});
+
+
+router.get('/services/:service/:journey', function(req,res){
+
+	var serviceSlug = req.params.service;
+	var journeySlug = req.params.journey;
 
 	var viewdata = {
 		"journey": {
@@ -67,7 +100,7 @@ router.get('/services/:service/:journey', function(req,res){
 
 	var params = {
 		Bucket: S3_BUCKET,
-		Key: service + '/' + journey + '/data.json'
+		Key: serviceSlug + '/data.json'
 	};
 
 	if (OFFLINE){
@@ -90,11 +123,31 @@ router.get('/services/:service/:journey', function(req,res){
 				console.log(err, err.stack);
 			} else {
 
-				console.dir(data.Body.toString());
+				var serviceData = JSON.parse(data.Body.toString());
+
+				console.log(JSON.stringify(serviceData, null, '  '));
+
+				var journeyData = null;
+
+				for (var i = 0; i < serviceData.journeys.length; i++){
+
+					if (serviceData.journeys[i].slug == journeySlug){
+						journeyData = serviceData.journeys[i];
+						break;
+					}
+
+				}
+
+				viewdata.journey.name = journeyData.name;
+
+				journeyData.screens.forEach(function(screen){
+					viewdata.journey.screens.push({
+						"name": screen.name,
+						"url": "/services/"+serviceSlug+"/"+journeySlug+"/"+screen.name
+					})
+				});
 
 				// TO DO get images
-
-				viewdata.data = data.Body.toString();
 				res.render("journey", viewdata);
 			}
 		});
@@ -213,6 +266,8 @@ router.get('/services/:service/:journey/:screen', function(req,res){
 	} else {
 
 		// TO DO get journey from S3 (cache?)
+
+		res.status(404).send("not done yet");
 
 	}
 
