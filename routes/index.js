@@ -142,8 +142,8 @@ router.get('/services/:service/:journey', function(req,res){
 
 				journeyData.screens.forEach(function(screen){
 					viewdata.journey.screens.push({
-						"name": screen.name,
-						"url": "/services/"+serviceSlug+"/"+journeySlug+"/"+screen.name
+						"name": screen.slug,
+						"url": "/services/"+serviceSlug+"/"+journeySlug+"/"+screen.slug
 					})
 				});
 
