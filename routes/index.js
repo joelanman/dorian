@@ -293,14 +293,14 @@ router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 
 				for (var i = 0; i<journeyData.screens.length; i++){
 					console.dir(journeyData.screens[i]);
-					if (journeyData.screens[i].name == screenSlug){
+					if (journeyData.screens[i].slug == screenSlug){
 						screenData = journeyData.screens[i];
 						break;
 					}
 				}
 
 				viewdata.screen = {
-					"name": screenData.name,
+					"name": screenData.slug,
 					"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + journeySlug + "/images/" + screenData["image-filename"]
 				}
 
