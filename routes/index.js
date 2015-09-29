@@ -23,6 +23,13 @@ aws.config.update({
 
 var s3 = new aws.S3();
 
+// valid date
+
+Date.prototype.isValid = function () {
+    return !isNaN (this.getTime());
+};
+
+
 router.get('/', function(req, res, next) {
   res.render('index', { title: 'Express' });
 });
@@ -54,125 +61,117 @@ router.get('/sign_s3', function(req, res){
 
 });
 
-router.get('/services/:service', function(req,res){
-
-	var service = req.params.service;
-
-	var viewdata = {
-		"service": {
-			"journeys": []
-		}
-	};
-
-	// get latest service
+function getLatestService(serviceSlug, callback){
 
 	var params = {
-		Bucket: S3_BUCKET,
-		// Marker: service + "/",
-		// MaxKeys: 0,
-		Prefix: service + "/"
-	};
+			Bucket: S3_BUCKET,
+			Delimiter: "/",
+			Prefix: serviceSlug + "/"
+		};
+
+	// list dirs
+
 	s3.listObjects(params, function(err, data) {
+
 		if (err) {
-			console.log(err, err.stack); // an error occurred
+
+			console.log(err, err.stack);
+
 		} else {
 
-			console.log("listObjects: ");
-			console.dir(data);
+			var datetimes = [];
+
+			// check dates are valid, get the most recent
+
+			data.CommonPrefixes.forEach(function(element){
+
+				console.log(element.Prefix);
+
+				var dirName = element.Prefix.replace(serviceSlug, "").replace(/\//g,"");
+
+				var date = new Date(dirName);
+
+				if (date.isValid()){
+					datetimes.push(dirName);
+				}
+
+			});
+
+			datetimes.sort();
+
+			console.log("datetimes: " + datetimes);
+
+			var datetime = datetimes[0];
 
 			var params = {
 				Bucket: S3_BUCKET,
-				Key: service + '/data.json'
+				Key: serviceSlug + "/" + datetime + '/data.json'
 			};
+
+			// get data for the most recent service
 
 			s3.getObject(params, function(err, data) {
 				if (err){
 					console.log(err, err.stack);
 				} else {
-
-					console.log("data: " + data.Body.toString());
-
-					// TO DO get images
-
-					viewdata.service = JSON.parse(data.Body.toString());
-
-					res.render("service", viewdata);
+					var service = JSON.parse(data.Body.toString());
+					callback(service);
 				}
 			});
 		}
+	});
+}
+
+router.get('/services/:serviceSlug', function(req,res){
+
+	var serviceSlug = req.params.serviceSlug;
+
+	// get latest service
+
+	getLatestService(serviceSlug, function(service){
+
+		res.render("service", {service:service});
+
 	});
 
 });
 
 
-router.get('/services/:service/:journey', function(req,res){
+router.get('/services/:serviceSlug/:journeySlug', function(req,res){
 
-	var serviceSlug = req.params.service;
-	var journeySlug = req.params.journey;
-
+	var serviceSlug = req.params.serviceSlug;
+	var journeySlug = req.params.journeySlug;
 	var viewdata = {
-		"journey": {
-			"screens": []
+		journey: {
+			screens: []
 		}
 	};
 
-	if (OFFLINE){
+	getLatestService(serviceSlug, function(service){
+	
+		var journey = null;
 
-		var journeyData = require('../resources/data.json');
+		for (var i = 0; i < service.journeys.length; i++){
 
-		journeyData.screens.forEach(function(screen){
+			if (service.journeys[i].slug == journeySlug){
+				journey = service.journeys[i];
+				break;
+			}
+
+		}
+
+		viewdata.journey.name = journey.name;
+
+		journey.screens.forEach(function(screen){
 			viewdata.journey.screens.push({
-				"name": screen.name,
-				"url": "/services/"+service+"/"+journey+"/"+screen.name
+				"name": screen.slug,
+				"url": "/services/"+serviceSlug+"/"+journeySlug+"/"+screen.slug
 			})
 		});
 
+		// TO DO get images
 		res.render("journey", viewdata);
-
-	} else {
-
-		// get latest service
-
-		var params = {
-			Bucket: S3_BUCKET,
-			Key: serviceSlug + "/" + datetime + '/data.json'
-		};
-
-		s3.getObject(params, function(err, data) {
-			if (err){
-				console.log(err, err.stack);
-			} else {
-
-				var serviceData = JSON.parse(data.Body.toString());
-
-				console.log(JSON.stringify(serviceData, null, '  '));
-
-				var journeyData = null;
-
-				for (var i = 0; i < serviceData.journeys.length; i++){
-
-					if (serviceData.journeys[i].slug == journeySlug){
-						journeyData = serviceData.journeys[i];
-						break;
-					}
-
-				}
-
-				viewdata.journey.name = journeyData.name;
-
-				journeyData.screens.forEach(function(screen){
-					viewdata.journey.screens.push({
-						"name": screen.slug,
-						"url": "/services/"+serviceSlug+"/"+journeySlug+"/"+screen.slug
-					})
-				});
-
-				// TO DO get images
-				res.render("journey", viewdata);
-			}
-		});
-	}
-
+	});
 });
 
 router.post('/services/:service/:datetime/:journey/images', upload.single('file-image'), function(req,res){
@@ -264,7 +263,7 @@ router.post('/services/:service/:journey', upload.single('file-data'), function(
 });
 
 
-router.get('/services/:serviceSlug/:datetime/:journeySlug/:screenSlug', function(req,res){
+router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 
 	var serviceSlug = req.params.serviceSlug;
 	var journeySlug = req.params.journeySlug;
@@ -272,75 +271,36 @@ router.get('/services/:serviceSlug/:datetime/:journeySlug/:screenSlug', function
 
 	var viewdata = {};
 
-	if (OFFLINE){
+	getLatestService(serviceSlug, function(service){
 
-		var journeyData = require('../resources/data.json');
+		var journey = {};
+
+		for (var i = 0; i<service.journeys.length; i++){
+			console.dir(service.journeys[i]);
+			if (service.journeys[i].slug == journeySlug){
+				journey = service.journeys[i];
+				break;
+			}
+		}
 
 		var screenData = {};
 
-		for (var i = 0; i<journeyData.screens.length; i++){
-			console.dir(journeyData.screens[i]);
-			if (journeyData.screens[i].name == screenSlug){
-				screenData = journeyData.screens[i];
+		for (var i = 0; i<journey.screens.length; i++){
+			console.dir(journey.screens[i]);
+			if (journey.screens[i].slug == screenSlug){
+				screenData = journey.screens[i];
 				break;
 			}
 		}
 
 		viewdata.screen = {
-			"name": screenData.name,
+			"name": screenData.slug,
 			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + journeySlug + "/images/" + screenData["image-filename"]
 		}
 
 		res.render('screen', viewdata);
 
-	} else {
-
-		var params = {
-			Bucket: S3_BUCKET,
-			Key: serviceSlug + '/data.json'
-		};
-
-		s3.getObject(params, function(err, data) {
-			if (err){
-				console.log(err, err.stack);
-			} else {
-
-				var serviceData = JSON.parse(data.Body.toString());
-
-				console.log(JSON.stringify(serviceData, null, '  '));
-
-				var journeyData = {};
-
-				for (var i = 0; i<serviceData.journeys.length; i++){
-					console.dir(serviceData.journeys[i]);
-					if (serviceData.journeys[i].slug == journeySlug){
-						journeyData = serviceData.journeys[i];
-						break;
-					}
-				}
-
-				var screenData = {};
-
-				for (var i = 0; i<journeyData.screens.length; i++){
-					console.dir(journeyData.screens[i]);
-					if (journeyData.screens[i].slug == screenSlug){
-						screenData = journeyData.screens[i];
-						break;
-					}
-				}
-
-				viewdata.screen = {
-					"name": screenData.slug,
-					"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + journeySlug + "/images/" + screenData["image-filename"]
-				}
-
-				res.render('screen', viewdata);
-
-			}
-		});
-
-	}
-
+	});
 
 });
 
