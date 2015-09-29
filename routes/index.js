@@ -67,22 +67,37 @@ router.get('/services/:service', function(req,res){
 	// get latest service
 
 	var params = {
-		Bucket: S3_BUCKET,
-		Key: service + '/data.json'
+		Bucket: s3_BUCKET,
+		// Marker: service + "/",
+		// MaxKeys: 0,
+		Prefix: service + "/"
 	};
-
-	s3.getObject(params, function(err, data) {
-		if (err){
-			console.log(err, err.stack);
+	s3.listObjects(params, function(err, data) {
+		if (err) {
+			console.log(err, err.stack); // an error occurred
 		} else {
 
-			console.log("data: " + data.Body.toString());
+			console.log("listObjects: " + data);
 
-			// TO DO get images
+			var params = {
+				Bucket: S3_BUCKET,
+				Key: service + '/data.json'
+			};
 
-			viewdata.service = JSON.parse(data.Body.toString());
+			s3.getObject(params, function(err, data) {
+				if (err){
+					console.log(err, err.stack);
+				} else {
 
-			res.render("service", viewdata);
+					console.log("data: " + data.Body.toString());
+
+					// TO DO get images
+
+					viewdata.service = JSON.parse(data.Body.toString());
+
+					res.render("service", viewdata);
+				}
+			});
 		}
 	});
 
