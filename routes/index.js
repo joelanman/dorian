@@ -193,11 +193,15 @@ router.post('/services/:serviceSlug', upload.single('file-data'), function(req,r
 	var body = fs.readFileSync(req.file.path);
 	fs.unlink(req.file.path);
 
+	console.log(body);
+
 	var service = JSON.parse(body);
+
+	console.dir(service);
 
 	var datetime = service.datetime;
 
-	var key = service + "/" + datetime + "/data.json";
+	var key = serviceSlug + "/" + datetime + "/data.json";
 
 	var params = {
 		Bucket: S3_BUCKET,
