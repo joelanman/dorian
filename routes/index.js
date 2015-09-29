@@ -77,7 +77,8 @@ router.get('/services/:service', function(req,res){
 			console.log(err, err.stack); // an error occurred
 		} else {
 
-			console.log("listObjects: " + data);
+			console.log("listObjects: ");
+			console.dir(data);
 
 			var params = {
 				Bucket: S3_BUCKET,
