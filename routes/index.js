@@ -67,7 +67,7 @@ router.get('/services/:service', function(req,res){
 	// get latest service
 
 	var params = {
-		Bucket: s3_BUCKET,
+		Bucket: S3_BUCKET,
 		// Marker: service + "/",
 		// MaxKeys: 0,
 		Prefix: service + "/"
