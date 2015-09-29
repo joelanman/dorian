@@ -165,7 +165,7 @@ router.post('/services/:service/:datetime/:journey/images', upload.single('file-
 	var journey  = req.params.journey;
 	var datetime = req.params.datetime;
 
-	var key = service + "/" + journey + "/" + datetime + "/images/" + req.file.originalname;
+	var key = service + "/" + datetime + "/" + journey + "/images/" + req.file.originalname;
 
 	var body = fs.readFileSync(req.file.path);
 	fs.unlink(req.file.path);
