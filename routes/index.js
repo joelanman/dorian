@@ -64,6 +64,8 @@ router.get('/services/:service', function(req,res){
 		}
 	};
 
+	// get latest service
+
 	var params = {
 		Bucket: S3_BUCKET,
 		Key: service + '/data.json'
@@ -113,9 +115,11 @@ router.get('/services/:service/:journey', function(req,res){
 
 	} else {
 
+		// get latest service
+
 		var params = {
 			Bucket: S3_BUCKET,
-			Key: serviceSlug + '/data.json'
+			Key: serviceSlug + "/" + datetime + '/data.json'
 		};
 
 		s3.getObject(params, function(err, data) {
@@ -155,12 +159,13 @@ router.get('/services/:service/:journey', function(req,res){
 
 });
 
-router.post('/services/:service/:journey/images', upload.single('file-image'), function(req,res){
+router.post('/services/:service/:datetime/:journey/images', upload.single('file-image'), function(req,res){
 
-	var service = req.params.service;
+	var service  = req.params.service;
 	var journey  = req.params.journey;
+	var datetime = req.params.datetime;
 
-	var key = service + "/" + journey + "/images/" + req.file.originalname;
+	var key = service + "/" + journey + "/" + datetime + "/images/" + req.file.originalname;
 
 	var body = fs.readFileSync(req.file.path);
 	fs.unlink(req.file.path);
@@ -181,14 +186,18 @@ router.post('/services/:service/:journey/images', upload.single('file-image'), f
 
 });
 
-router.post('/services/:service', upload.single('file-data'), function(req,res){
+router.post('/services/:serviceSlug', upload.single('file-data'), function(req,res){
 
-	var service = req.params.service;
-
-	var key = service + "/data.json";
+	var serviceSlug = req.params.serviceSlug;
 
 	var body = fs.readFileSync(req.file.path);
 	fs.unlink(req.file.path);
+
+	var service = JSON.parse(body);
+
+	var datetime = service.datetime;
+
+	var key = service + "/" + datetime + "/data.json";
 
 	var params = {
 		Bucket: S3_BUCKET,
@@ -208,8 +217,10 @@ router.post('/services/:service', upload.single('file-data'), function(req,res){
 
 router.post('/services/:service/:journey', upload.single('file-data'), function(req,res){
 
+	// BROKEN!!
+
 	var service = req.params.service;
-	var journey  = req.params.journey;
+	var journey = req.params.journey;
 
 	var key = service + "/" + journey + "/data.json";
 
@@ -232,9 +243,8 @@ router.post('/services/:service/:journey', upload.single('file-data'), function(
 
 });
 
-// TO DO upload service data
 
-router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
+router.get('/services/:serviceSlug/:datetime/:journeySlug/:screenSlug', function(req,res){
 
 	var serviceSlug = req.params.serviceSlug;
 	var journeySlug = req.params.journeySlug;
