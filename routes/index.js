@@ -202,6 +202,11 @@ router.get('/services/:serviceSlug/:journeySlug', function(req,res){
 
 		}
 
+		if (!journey){
+			res.send(404);
+			return;
+		}
+
 		viewdata.journey.name = journey.name;
 		viewdata.serviceName  = service.service;
 		viewdata.serviceSlug  = service.slug;
@@ -322,12 +327,11 @@ router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 		datetime: datetime
 	};
 
-	getService(params, function(service){
+	getService(params, function(service, datetimes, selectedDate){
 
 		var journey = {};
 
 		for (var i = 0; i<service.journeys.length; i++){
-			console.dir(service.journeys[i]);
 			if (service.journeys[i].slug == journeySlug){
 				journey = service.journeys[i];
 				break;
@@ -336,20 +340,54 @@ router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 
 		var screenData = {};
 
-		for (var i = 0; i<journey.screens.length; i++){
-			console.dir(journey.screens[i]);
+		viewdata.screenfound = false;
+		viewdata.firstScreenSlug = journey.screens[0].slug;
+
+		for (var i = 0; i < journey.screens.length; i++){
+
 			if (journey.screens[i].slug == screenSlug){
+
+				viewdata.screenFound = true;
 				screenData = journey.screens[i];
+
+				var prevURL = null;
+				var nextURL = null;
+				var journeyURL = "/services/" + service.slug + "/" + journey.slug + "/";
+
+				if (i > 0){
+					prevURL = journeyURL + journey.screens[i-1].slug;
+				}
+
+				if (journey.screens[i+1] != undefined){
+					nextURL = journeyURL + journey.screens[i+1].slug;
+				}
+
 				break;
 			}
+
 		}
 
 		var datetime = service.datetime;
 
+		var s3URL = "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET;
+
 		viewdata.screen = {
-			"name": screenData.slug,
-			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + datetime + "/" + journeySlug + "/images/" + screenData["image-filename"]
+			"slug": 	screenData.slug,
+			"name": 	screenData.slug,
+			"imageURL": s3URL + "/" + serviceSlug + "/" + datetime + "/" + journeySlug + "/images/" + screenData["image-filename"],
 		}
+
+		viewdata.serviceName  = service.service;
+		viewdata.serviceSlug  = service.slug;
+
+		viewdata.journeyName  = journey.name;
+		viewdata.journeySlug  = journey.slug;
+
+		viewdata.prevURL      = prevURL;
+		viewdata.nextURL      = nextURL;
+
+		viewdata.datetimes    = datetimes;
+		viewdata.selectedDate = selectedDate;
 
 		res.render('screen', viewdata);
 

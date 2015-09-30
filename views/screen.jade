@@ -2,13 +2,50 @@ extends layout
 
 block content
 
-	main.page-upload
+	main.page-screen
 
-		h1= screen.name
+		.main-header
 
-		img.screen-image(src="#{screen.imageURL}")
+			details.date-selector
+				summary= selectedDate.friendly
+
+				.inner
+
+					ul.last-element
+						each datetime in datetimes
+
+							li
+								a(href="/services/#{serviceSlug}/#{journeySlug}/#{screen.slug}?datetime=#{datetime.iso}")= datetime.friendly
+
+			.breadcrumbs
+
+				a(href="/services/#{serviceSlug}#{selectedDate.query}")= serviceName
+
+				span.separator ›
+
+				a(href="/services/#{serviceSlug}/#{journeySlug}#{selectedDate.query}")= journeyName
+
+				span.separator ›
+
+				span= screen.name
 
 		.actions
 
-			a.previous(href="#") Previous
-			a.next(href="#") Next
+			if prevURL
+
+				a.button.previous(href="#{prevURL}#{selectedDate.query}") Previous
+
+			if nextURL
+
+				a.button.next(href="#{nextURL}#{selectedDate.query}") Next
+
+		if screenFound
+
+			img.screen-image(src="#{screen.imageURL}")
+
+		else
+
+			p Sorry, that screen doesn't exist in this journey.
+
+			p
+				a(href="/services/#{serviceSlug}/#{journeySlug}/#{firstScreenSlug}#{selectedDate.query}") Go to the start of this journey

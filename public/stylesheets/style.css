@@ -3,6 +3,13 @@ main{
 	margin: auto;
 	font-family: Helvetica, Arial, sans-serif;
 }
+h1{
+	font-size: 20px;
+}
+h2{
+	font-size: 18px;
+	font-weight: normal;
+}
 
 details{
 	background: #f0f0f0;
@@ -16,6 +23,16 @@ details summary{
 
 .last-element{
 	margin-bottom: 0;
+}
+
+.button,
+.button:visited{
+	color: #111;
+	display: inline-block;
+	background: #eee;
+	padding: 10px 20px;
+	margin-right: 1em;
+	box-shadow: 0 2px 0 rgba(0,0,0,0.3);
 }
 
 a,
@@ -67,4 +84,32 @@ li{
 
 .screen-image{
 	max-width: 100%;
+}
+
+.breadcrumbs{
+	margin: 1em 0;
+}
+
+.breadcrumbs a{
+	display: inline-block;
+	margin-right: 1em;
+	color: #111;
+}
+
+.breadcrumbs .separator{
+	display: inline-block;
+	margin-right: 1em;
+}
+
+.actions{
+	margin-bottom: 20px;
+}
+
+.actions .button{
+	width: 60px;
+	text-align: center;
+}
+
+.date-selector{
+	float: right;
 }
