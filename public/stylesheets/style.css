@@ -31,3 +31,7 @@ main{
 .page-upload .processing{
 	display: none;
 }
+
+.screen-image{
+	max-width: 100%;
+}
