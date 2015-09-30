@@ -6,8 +6,21 @@ block content
 
 		h1= service.service
 
+		details
+			summary Previous versions
+
+			.inner
+
+				ul
+					each datetime in datetimes
+
+						li
+							a(href="/services/#{service.slug}?datetime=#{datetime.iso}")= datetime.friendly
+
+		h2 Journeys
+
 		ul
 			each journey in service.journeys
 
 				li
-					a(href="/services/#{service.slug}/#{journey.slug}")= journey.name
+					a(href="/services/#{service.slug}/#{journey.slug}#{selectedDatetime}")= journey.name

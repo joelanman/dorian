@@ -7,6 +7,7 @@ var multer  = require('multer')
 var upload = multer({ dest: 'uploads/' })
 
 var aws = require('aws-sdk');
+var moment = require('moment');
 
 var OFFLINE = process.env.OFFLINE;
 
@@ -84,7 +85,7 @@ function getService(options, callback){
 
 			var datetimes = [];
 
-			// check dates are valid, get the most recent
+			// get dates and check they're valid
 
 			data.CommonPrefixes.forEach(function(element){
 
@@ -95,24 +96,23 @@ function getService(options, callback){
 				var date = new Date(dirName);
 
 				if (date.isValid()){
-					datetimes.push(dirName);
+					datetimes.push({
+						friendly: moment(date).format("DD MM YYYY"),
+						iso: dirName
+					});
 				}
 
 			});
 
 			function sortByDateDesc( a, b ) {
-			    return new Date(a) < new Date(b) ? 1 : -1;
+			    return new Date(a.iso) < new Date(b.iso) ? 1 : -1;
 			}
 
 			datetimes.sort(sortByDateDesc);
 
 			console.log("datetimes: " + datetimes);
 
-			if (datetime == "latest"){
-				var serviceDatetime = datetimes[0];
-			} else {
-				// get service by datetime
-			}
+			var serviceDatetime = datetime == "latest" ? datetimes[0].iso : datetime;
 
 			var params = {
 				Bucket: S3_BUCKET,
@@ -135,13 +135,22 @@ function getService(options, callback){
 
 router.get('/services/:serviceSlug', function(req,res){
 
-	var serviceSlug = req.params.serviceSlug;
+	var params = {
+		serviceSlug: req.params.serviceSlug,
+		datetime: req.query.datetime || null
+	}
 
 	// get latest service
 
-	getService({serviceSlug:serviceSlug}, function(service){
+	getService(params, function(service, datetimes){
 
-		res.render("service", {service:service});
+		var viewData = {
+			service:service,
+			datetimes:datetimes,
+			selectedDatetime : "?datetime=" + params.datetime || ""
+		}
+
+		res.render("service", viewData);
 
 	});
 
@@ -152,13 +161,21 @@ router.get('/services/:serviceSlug/:journeySlug', function(req,res){
 
 	var serviceSlug = req.params.serviceSlug;
 	var journeySlug = req.params.journeySlug;
+	var datetime 	= req.query.datetime || null;
+
 	var viewdata = {
 		journey: {
 			screens: []
-		}
+		},
+		selectedDatetime : "?datetime=" + datetime || ""
 	};
 
-	getService({serviceSlug: serviceSlug}, function(service){
+	var params = {
+		serviceSlug: serviceSlug,
+		datetime: datetime
+	}
+
+	getService(params, function(service, datetimes){
 	
 		var journey = null;
 
@@ -279,10 +296,16 @@ router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 	var serviceSlug = req.params.serviceSlug;
 	var journeySlug = req.params.journeySlug;
 	var screenSlug  = req.params.screenSlug;
+	var datetime 	= req.query.datetime || null;
 
 	var viewdata = {};
 
-	getService({serviceSlug: serviceSlug}, function(service){
+	var params = {
+		serviceSlug: serviceSlug,
+		datetime: datetime
+	};
+
+	getService(params, function(service){
 
 		var journey = {};
 
