@@ -61,7 +61,10 @@ router.get('/sign_s3', function(req, res){
 
 });
 
-function getLatestService(serviceSlug, callback){
+function getService(options, callback){
+
+	var serviceSlug = options.serviceSlug;
+	var datetime 	= options.datetime || "latest";
 
 	var params = {
 			Bucket: S3_BUCKET,
@@ -97,15 +100,23 @@ function getLatestService(serviceSlug, callback){
 
 			});
 
-			datetimes.sort();
+			function sortByDateDesc( a, b ) {
+			    return new Date(a) < new Date(b) ? 1 : -1;
+			}
+
+			datetimes.sort(sortByDateDesc);
 
 			console.log("datetimes: " + datetimes);
 
-			var datetime = datetimes[0];
+			if (datetime == "latest"){
+				var serviceDatetime = datetimes[0];
+			} else {
+				// get service by datetime
+			}
 
 			var params = {
 				Bucket: S3_BUCKET,
-				Key: serviceSlug + "/" + datetime + '/data.json'
+				Key: serviceSlug + "/" + serviceDatetime + '/data.json'
 			};
 
 			// get data for the most recent service
@@ -115,7 +126,7 @@ function getLatestService(serviceSlug, callback){
 					console.log(err, err.stack);
 				} else {
 					var service = JSON.parse(data.Body.toString());
-					callback(service);
+					callback(service, datetimes);
 				}
 			});
 		}
@@ -128,7 +139,7 @@ router.get('/services/:serviceSlug', function(req,res){
 
 	// get latest service
 
-	getLatestService(serviceSlug, function(service){
+	getService({serviceSlug:serviceSlug}, function(service){
 
 		res.render("service", {service:service});
 
@@ -147,7 +158,7 @@ router.get('/services/:serviceSlug/:journeySlug', function(req,res){
 		}
 	};
 
-	getLatestService(serviceSlug, function(service){
+	getService({serviceSlug: serviceSlug}, function(service){
 	
 		var journey = null;
 
@@ -271,7 +282,7 @@ router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 
 	var viewdata = {};
 
-	getLatestService(serviceSlug, function(service){
+	getService({serviceSlug: serviceSlug}, function(service){
 
 		var journey = {};
 
