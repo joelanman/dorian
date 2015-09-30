@@ -293,9 +293,11 @@ router.get('/services/:serviceSlug/:journeySlug/:screenSlug', function(req,res){
 			}
 		}
 
+		var datetime = service.datetime;
+
 		viewdata.screen = {
 			"name": screenData.slug,
-			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + journeySlug + "/images/" + screenData["image-filename"]
+			"imageURL": "https://s3-" + S3_REGION + ".amazonaws.com/" + S3_BUCKET + "/" + serviceSlug + "/" + datetime + "/" + journeySlug + "/images/" + screenData["image-filename"]
 		}
 
 		res.render('screen', viewdata);
