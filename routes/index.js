@@ -95,7 +95,7 @@ function getService(options, callback){
 
 				var date = new Date(dirName);
 
-				if (date.isValid()){
+				if (date.isValid() && dirName != datetime){
 					datetimes.push({
 						friendly: moment(date).format("DD MM YYYY"),
 						iso: dirName
@@ -112,11 +112,20 @@ function getService(options, callback){
 
 			console.log("datetimes: " + datetimes);
 
-			var serviceDatetime = datetime == "latest" ? datetimes[0].iso : datetime;
+			if (datetime == "latest"){
+				datetime = datetimes[0].iso;
+				datetimes.shift();
+			}
+
+
+			var selectedDate = {
+				friendly: moment(datetime).format("DD MM YYYY"),
+				query: "?datetime=" + datetime
+			};
 
 			var params = {
 				Bucket: S3_BUCKET,
-				Key: serviceSlug + "/" + serviceDatetime + '/data.json'
+				Key: serviceSlug + "/" + datetime + '/data.json'
 			};
 
 			// get data for the most recent service
@@ -126,7 +135,7 @@ function getService(options, callback){
 					console.log(err, err.stack);
 				} else {
 					var service = JSON.parse(data.Body.toString());
-					callback(service, datetimes);
+					callback(service, datetimes, selectedDate);
 				}
 			});
 		}
@@ -135,19 +144,21 @@ function getService(options, callback){
 
 router.get('/services/:serviceSlug', function(req,res){
 
+	var datetime = req.query.datetime || null;
+
 	var params = {
 		serviceSlug: req.params.serviceSlug,
-		datetime: req.query.datetime || null
+		datetime: datetime
 	}
 
 	// get latest service
 
-	getService(params, function(service, datetimes){
+	getService(params, function(service, datetimes, selectedDate){
 
 		var viewData = {
 			service:service,
 			datetimes:datetimes,
-			selectedDatetime : "?datetime=" + params.datetime || ""
+			selectedDate: selectedDate
 		}
 
 		res.render("service", viewData);
@@ -167,7 +178,10 @@ router.get('/services/:serviceSlug/:journeySlug', function(req,res){
 		journey: {
 			screens: []
 		},
-		selectedDatetime : "?datetime=" + datetime || ""
+		selectedDate: {
+			friendly: moment(datetime).format("DD MM YYYY"),
+			query : "?datetime=" + datetime || ""
+		}
 	};
 
 	var params = {
@@ -189,6 +203,9 @@ router.get('/services/:serviceSlug/:journeySlug', function(req,res){
 		}
 
 		viewdata.journey.name = journey.name;
+		viewdata.serviceName  = service.service;
+		viewdata.serviceSlug  = service.slug;
+		viewdata.datetimes	  = datetimes;
 
 		journey.screens.forEach(function(screen){
 			viewdata.journey.screens.push({

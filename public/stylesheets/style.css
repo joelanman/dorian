@@ -14,17 +14,19 @@ details summary{
 	cursor: pointer;
 }
 
+.last-element{
+	margin-bottom: 0;
+}
+
 a,
 a:visited{
 	color: #1122CC;
 	text-decoration: none;
 }
 
-/*details .inner{
-	margin-left: 4px;
-	padding-left: 10px;
-	border-left: solid 2px #1122CC;
-}*/
+details .inner{
+	padding-left: 1em;
+}
 
 ul{
 	list-style: none;
@@ -32,7 +34,7 @@ ul{
 }
 
 li{
-	margin: 0.5em;
+	margin: 0.5em 0;
 }
 
 .form-group{

@@ -2,12 +2,26 @@ extends layout
 
 block content
 
-	main.page-upload
+	main.page-journey
 
-		h1= journey.name
+		h1
+			a(href="/services/#{serviceSlug}#{selectedDate.query}")= serviceName
+
+		details
+			summary= selectedDate.friendly
+
+			.inner
+
+				ul.last-element
+					each datetime in datetimes
+
+						li
+							a(href="/services/#{serviceSlug}?datetime=#{datetime.iso}")= datetime.friendly
+
+		h2= journey.name
 
 		ol
 			each screen in journey.screens
 
 				li
-					a(href="#{screen.url}#{selectedDatetime}")= screen.name
+					a(href="#{screen.url}#{selectedDate.query}")= screen.name

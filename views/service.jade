@@ -7,11 +7,11 @@ block content
 		h1= service.service
 
 		details
-			summary Previous versions
+			summary= selectedDate.friendly
 
 			.inner
 
-				ul
+				ul.last-element
 					each datetime in datetimes
 
 						li
@@ -23,4 +23,4 @@ block content
 			each journey in service.journeys
 
 				li
-					a(href="/services/#{service.slug}/#{journey.slug}#{selectedDatetime}")= journey.name
+					a(href="/services/#{service.slug}/#{journey.slug}#{selectedDate.query}")= journey.name
