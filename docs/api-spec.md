@@ -14,6 +14,10 @@ Name of the service
 
 Unique slug used to store and view the data on Dorian. Should only contain characters valid in a URL (so no spaces).
 
+**datetime** (string)
+
+[ISO date string](https://en.wikipedia.org/wiki/ISO_8601) representing the time the screenshots were taken.
+
 **journeys** (array)
 
 Array of journey objects
@@ -56,6 +60,7 @@ The name of the file for this screen. Each screen should have a unique filename 
 {
   "service": "GOV.UK Verify",
   "slug": "govuk-verify",
+  "datetime": "2015-09-01T12:25:21.025Z",
   "journeys": [
     {
       "name": "Register",
